@@ -339,6 +339,7 @@ def compute_embeddings_sentence_transformers(
             "low_cpu_mem_usage": True,
             "_fast_init": True,
             "attn_implementation": "eager",  # Use eager attention for speed
+            "trust_remote_code": True,  # Required for models like nomic-embed-text
         }
 
         tokenizer_kwargs = {

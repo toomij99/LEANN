@@ -1556,13 +1556,39 @@ Examples:
 
     async def ask_questions(self, args):
         index_name = args.index_name
-        index_path = self.get_index_path(index_name)
 
-        if not self.index_exists(index_name):
-            print(
-                f"Index '{index_name}' not found. Use 'leann build {index_name} --docs <dir> [<dir2> ...]' to create it."
-            )
-            return
+        # First try to find the index in current project
+        index_path = self.get_index_path(index_name)
+        if self.index_exists(index_name):
+            # Found in current project, use it
+            pass
+        else:
+            # Search across all registered projects (like search_documents does)
+            all_matches = self._find_all_matching_indexes(index_name)
+            if not all_matches:
+                print(
+                    f"Index '{index_name}' not found. Use 'leann build {index_name} --docs <dir> [<dir2> ...]' to create it."
+                )
+                return
+            elif len(all_matches) == 1:
+                # Found exactly one match, use it
+                match = all_matches[0]
+                if match["kind"] == "cli":
+                    index_path = str(match["index_dir"] / "documents.leann")
+                else:
+                    # App format: use the meta file to construct the path
+                    meta_file = match["meta_file"]
+                    file_base = match["file_base"]
+                    index_path = str(meta_file.parent / f"{file_base}.leann")
+            else:
+                # Multiple matches, let user choose (for now, take first)
+                match = all_matches[0]
+                if match["kind"] == "cli":
+                    index_path = str(match["index_dir"] / "documents.leann")
+                else:
+                    meta_file = match["meta_file"]
+                    file_base = match["file_base"]
+                    index_path = str(meta_file.parent / f"{file_base}.leann")
 
         print(f"Starting chat with index '{index_name}'...")
         print(f"Using {args.model} ({args.llm})")

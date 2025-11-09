@@ -314,8 +314,13 @@ class BaseRAGExample(ABC):
         batch_size = 1000
         for i in range(0, len(texts), batch_size):
             batch = texts[i : i + batch_size]
-            for text in batch:
-                builder.add_text(text)
+            for item in batch:
+                if isinstance(item, dict):
+                    text = item.get("text", "")
+                    metadata = item.get("metadata", {})
+                    builder.add_text(text, metadata)
+                else:
+                    builder.add_text(item)
             print(f"Added {min(i + batch_size, len(texts))}/{len(texts)} texts...")
 
         print("Building index structure...")

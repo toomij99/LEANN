@@ -190,14 +190,14 @@ def create_ast_chunks(
     except ImportError as e:
         logger.error(f"astchunk not available: {e}")
         logger.info("Falling back to traditional chunking for code files")
-        return _traditional_chunks_as_dicts(documents, max_chunk_size, chunk_overlap)
+        return create_traditional_chunks(documents, max_chunk_size, chunk_overlap)
 
     all_chunks = []
     for doc in documents:
         language = doc.metadata.get("language")
         if not language:
             logger.warning("No language detected; falling back to traditional chunking")
-            all_chunks.extend(_traditional_chunks_as_dicts([doc], max_chunk_size, chunk_overlap))
+            all_chunks.extend(create_traditional_chunks([doc], max_chunk_size, chunk_overlap))
             continue
 
         try:
@@ -280,7 +280,7 @@ def create_ast_chunks(
         except Exception as e:
             logger.warning(f"AST chunking failed for {language} file: {e}")
             logger.info("Falling back to traditional chunking")
-            all_chunks.extend(_traditional_chunks_as_dicts([doc], max_chunk_size, chunk_overlap))
+            all_chunks.extend(create_traditional_chunks([doc], max_chunk_size, chunk_overlap))
 
     return all_chunks
 
@@ -334,14 +334,7 @@ def create_traditional_chunks(
     return result
 
 
-def _traditional_chunks_as_dicts(
-    documents, chunk_size: int = 256, chunk_overlap: int = 128
-) -> list[dict[str, Any]]:
-    """Helper: Traditional chunking that returns dict format for consistency.
 
-    This is now just an alias for create_traditional_chunks for backwards compatibility.
-    """
-    return create_traditional_chunks(documents, chunk_size, chunk_overlap)
 
 
 def create_text_chunks(
@@ -393,14 +386,14 @@ def create_text_chunks(
                 logger.error(f"AST chunking failed: {e}")
                 if ast_fallback_traditional:
                     all_chunks.extend(
-                        _traditional_chunks_as_dicts(code_docs, chunk_size, chunk_overlap)
+                        create_traditional_chunks(code_docs, chunk_size, chunk_overlap)
                     )
                 else:
                     raise
         if text_docs:
-            all_chunks.extend(_traditional_chunks_as_dicts(text_docs, chunk_size, chunk_overlap))
+            all_chunks.extend(create_traditional_chunks(text_docs, chunk_size, chunk_overlap))
     else:
-        all_chunks = _traditional_chunks_as_dicts(documents, chunk_size, chunk_overlap)
+        all_chunks = create_traditional_chunks(documents, chunk_size, chunk_overlap)
 
     logger.info(f"Total chunks created: {len(all_chunks)}")
 

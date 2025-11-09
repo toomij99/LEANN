@@ -16,7 +16,10 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union
 
 import numpy as np
-from leann_backend_hnsw.convert_to_csr import prune_hnsw_embeddings_inplace
+try:
+    from leann_backend_hnsw.convert_to_csr import prune_hnsw_embeddings_inplace
+except ImportError:
+    prune_hnsw_embeddings_inplace = None
 
 from leann.interactive_utils import create_api_session
 from leann.interface import LeannBackendSearcherInterface
@@ -860,7 +863,10 @@ class LeannBuilder:
         self.chunks.clear()
 
         if needs_recompute:
-            prune_hnsw_embeddings_inplace(str(index_file))
+            if prune_hnsw_embeddings_inplace:
+                prune_hnsw_embeddings_inplace(str(index_file))
+            else:
+                print("Warning: prune_hnsw_embeddings_inplace not available, skipping recompute optimization")
 
 
 class LeannSearcher:
