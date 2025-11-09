@@ -109,6 +109,7 @@ test = [
 dev = [
     "matplotlib",
     "huggingface-hub>=0.20.0",
+    "pre-commit>=4.3.0",
 ]
 
 [tool.ruff]

@@ -334,9 +334,6 @@ def create_traditional_chunks(
     return result
 
 
-
-
-
 def create_text_chunks(
     documents,
     chunk_size: int = 256,

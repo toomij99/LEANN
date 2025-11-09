@@ -169,7 +169,9 @@ class DiscordMCPReader:
         Internal implementation using Discord REST API directly.
         """
         if not aiohttp:
-            raise RuntimeError("aiohttp library is required for Discord REST API access. Install with: uv pip install aiohttp")
+            raise RuntimeError(
+                "aiohttp library is required for Discord REST API access. Install with: uv pip install aiohttp"
+            )
 
         # Get bot token from environment
         token = os.getenv("DISCORD_TOKEN")
@@ -183,7 +185,7 @@ class DiscordMCPReader:
 
         headers = {
             "Authorization": f"Bot {token}",
-            "User-Agent": "DiscordBot (https://discord.com/api, 10)"
+            "User-Agent": "DiscordBot (https://discord.com/api, 10)",
         }
 
         url = f"https://discord.com/api/v10/channels/{channel}/messages?limit={min(limit, 100)}"
@@ -195,7 +197,9 @@ class DiscordMCPReader:
                     return messages
                 else:
                     error_text = await response.text()
-                    raise RuntimeError(f"Failed to fetch messages: {response.status} - {error_text}")
+                    raise RuntimeError(
+                        f"Failed to fetch messages: {response.status} - {error_text}"
+                    )
 
     def _parse_text_messages(self, text: str, channel: Optional[str]) -> list[dict[str, Any]]:
         """Parse text format messages from Discord MCP server."""
@@ -223,9 +227,10 @@ class DiscordMCPReader:
         if timestamp:
             try:
                 import datetime
+
                 # Discord timestamps are ISO format
                 if isinstance(timestamp, str):
-                    dt = datetime.datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    dt = datetime.datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
                     formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
                 else:
                     formatted_time = str(timestamp)
@@ -296,7 +301,7 @@ class DiscordMCPReader:
 
         headers = {
             "Authorization": f"Bot {token}",
-            "User-Agent": "DiscordBot (https://discord.com/api, 10)"
+            "User-Agent": "DiscordBot (https://discord.com/api, 10)",
         }
 
         url = f"https://discord.com/api/v10/guilds/{guild_id}/channels"
@@ -332,7 +337,7 @@ class DiscordMCPReader:
 
         headers = {
             "Authorization": f"Bot {token}",
-            "User-Agent": "DiscordBot (https://discord.com/api, 10)"
+            "User-Agent": "DiscordBot (https://discord.com/api, 10)",
         }
 
         url = "https://discord.com/api/v10/users/@me/guilds"

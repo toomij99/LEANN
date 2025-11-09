@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.9"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -2341,6 +2341,7 @@ dev = [
     { name = "huggingface-hub" },
     { name = "matplotlib", version = "3.9.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "matplotlib", version = "3.10.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pre-commit" },
 ]
 lint = [
     { name = "pre-commit" },
@@ -2411,6 +2412,7 @@ provides-extras = ["diskann", "documents"]
 dev = [
     { name = "huggingface-hub", specifier = ">=0.20.0" },
     { name = "matplotlib" },
+    { name = "pre-commit", specifier = ">=4.3.0" },
 ]
 lint = [
     { name = "pre-commit", specifier = ">=3.5.0" },

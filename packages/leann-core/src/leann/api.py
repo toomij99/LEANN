@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union
 
 import numpy as np
+
 try:
     from leann_backend_hnsw.convert_to_csr import prune_hnsw_embeddings_inplace
 except ImportError:
@@ -866,7 +867,9 @@ class LeannBuilder:
             if prune_hnsw_embeddings_inplace:
                 prune_hnsw_embeddings_inplace(str(index_file))
             else:
-                print("Warning: prune_hnsw_embeddings_inplace not available, skipping recompute optimization")
+                print(
+                    "Warning: prune_hnsw_embeddings_inplace not available, skipping recompute optimization"
+                )
 
 
 class LeannSearcher:
