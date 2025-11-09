@@ -153,6 +153,50 @@ uv sync --extra diskann
 </details>
 
 
+## Development Setup
+
+For developers contributing to LEANN, follow these additional setup steps:
+
+### Pre-commit Hooks
+
+Install and setup pre-commit hooks for code quality:
+
+```bash
+uv add --dev pre-commit
+uv run pre-commit install
+```
+
+The pre-commit hooks include:
+- **Ruff**: Linting and code formatting
+- **Basic checks**: Trailing whitespace, end-of-file fixes, YAML validation, large file detection, merge conflict detection
+
+### Security Scanning
+
+LEANN uses Snyk for dependency security scanning. After installing Snyk CLI:
+
+```bash
+npm install -g snyk
+snyk auth
+```
+
+Run security scans manually:
+
+```bash
+# Scan main project dependencies
+snyk test --skip-unresolved --severity-threshold=high
+
+# Monitor for new vulnerabilities
+snyk monitor
+```
+
+### Code Quality
+
+Before submitting changes, ensure:
+- All pre-commit hooks pass: `uv run pre-commit run --all-files`
+- Code follows the established patterns in the codebase
+- New features include appropriate tests
+- Documentation is updated for API changes
+
 ## Quick Start
 
 Our declarative API makes RAG as easy as writing a config file.
