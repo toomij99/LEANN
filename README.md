@@ -197,6 +197,125 @@ Before submitting changes, ensure:
 - New features include appropriate tests
 - Documentation is updated for API changes
 
+## How LEANN Uses Embedders and Inference
+
+### 🔍 Embedding Computation Entry Points
+
+LEANN supports multiple embedding modes through the `compute_embeddings()` function:
+
+```python
+def compute_embeddings(
+    chunks: list[str],
+    model_name: str,
+    mode: str = "sentence-transformers",  # Options: sentence-transformers, openai, mlx, ollama, gemini
+    use_server: bool = True,  # True for search/query, False for build
+    port: Optional[int] = None,
+    is_build=False,
+    provider_options: Optional[dict[str, Any]] = None,
+) -> np.ndarray:
+```
+
+### 📚 Supported Embedding Modes
+
+**SentenceTransformers (Default):**
+- Uses `sentence-transformers` library
+- Supports models like `all-MiniLM-L6-v2`, `all-mpnet-base-v2`, etc.
+- Hardware-optimized with CUDA/MPS support, FP16, torch.compile
+- Batch processing with adaptive optimization
+
+**OpenAI:**
+- Uses OpenAI API (`text-embedding-3-small/large`, `ada-002`)
+- Batch processing with rate limiting
+- Supports custom base URLs for LM Studio/Ollama
+
+**Ollama:**
+- Local models via `/api/embed` endpoint
+- True batch processing support
+- Models like `nomic-embed-text`, `mxbai-embed-large`
+- Automatic token limit detection
+
+**MLX (Apple Silicon):**
+- Uses `mlx-lm` for Apple Silicon optimization
+- Models loaded via HuggingFace transformers
+
+**Gemini:**
+- Google Gemini embedding API
+- `text-embedding-004` model
+
+### ⚙️ Arguments Passed to Embedders
+
+When you call LEANN functions, arguments flow like this:
+
+```python
+# User provides these arguments
+builder = LeannBuilder(
+    embedding_model="all-MiniLM-L6-v2",      # Model name
+    embedding_mode="sentence-transformers",  # Computation backend
+    embedding_options={"api_key": "sk-..."}  # Provider-specific options
+)
+
+# These get stored in metadata and passed to embedders
+builder.add_text("your text here")  # Text chunks to embed
+```
+
+### 🚀 Inference Process
+
+**During Index Building (`build_index`):**
+1. Text chunks → `compute_embeddings(use_server=False)` → Direct model loading
+2. Batched processing with progress bars
+3. Embeddings stored in vector index
+
+**During Search (`search`):**
+1. Query text → `compute_query_embedding()` → Embedding server (if `recompute_embeddings=True`)
+2. ZMQ communication with background embedding server
+3. Fresh embeddings computed for query + neighbors (if recomputing)
+
+### 🖥️ Embedding Server Architecture
+
+LEANN uses **ZMQ-based embedding servers** for inference:
+
+```python
+# Server handles requests like this
+def zmq_server_thread_with_shutdown(shutdown_event):
+    context = zmq.Context()
+    rep_socket = context.socket(zmq.REP)
+    rep_socket.bind(f"tcp://*:{zmq_port}")
+
+    while not shutdown_event.is_set():
+        request_bytes = rep_socket.recv()
+        request = msgpack.unpackb(request_bytes)  # List of text chunks
+
+        # Compute embeddings
+        embeddings = compute_embeddings(request, model_name, mode=embedding_mode)
+
+        # Send back via ZMQ
+        rep_socket.send(msgpack.packb(embeddings.tolist()))
+```
+
+### 🔧 How Arguments Are Used
+
+**Model Selection:**
+- `embedding_model`: Passed directly to embedder (e.g., `"all-MiniLM-L6-v2"`)
+- `embedding_mode`: Determines which computation function to use
+
+**Provider Options:**
+- `embedding_options`: Dictionary passed to embedders
+- Example: `{"api_key": "sk-...", "base_url": "http://localhost:11434"}`
+
+**Runtime Control:**
+- `use_server`: Whether to use ZMQ server (True) or direct computation (False)
+- `recompute_embeddings`: During search, whether to recompute neighbor embeddings
+
+### ⚡ Optimization Features
+
+- **Model Caching:** Global `_model_cache` prevents reloading
+- **Hardware Optimization:** CUDA/MPS detection, FP16, torch.compile
+- **Batch Processing:** Adaptive batch sizes based on hardware
+- **Token Truncation:** Automatic truncation to model limits
+- **Memory Management:** Gradient disabling, eval mode for inference
+
+The key insight is that LEANN separates **build-time** (direct computation) from **search-time** (server-based inference) to optimize performance and memory usage. Arguments you pass get stored in metadata and flow through to the appropriate embedder based on the `embedding_mode` you specify.
+
 ## Quick Start
 
 Our declarative API makes RAG as easy as writing a config file.
